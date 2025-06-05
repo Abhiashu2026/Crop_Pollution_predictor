@@ -1,0 +1,6 @@
+Dataset sources:
+- FAOSTAT (Food and Agriculture Organization) Crop Production Database
+- ICAR (Indian Council of Agricultural Research) Fertilizer and Pesticide Use Reports
+- Ministry of Environment, Forest and Climate Change - India
+
+Pollution Index calculated based on estimated fertilizer and pesticide impact.
