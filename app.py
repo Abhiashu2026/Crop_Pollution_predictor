@@ -33,6 +33,7 @@ st.markdown(
         border: 1px solid #d9e2dc;
         border-radius: 8px;
         padding: 0.85rem;
+        color: #14211A;
     }
     div[data-testid="stHorizontalBlock"] {
         gap: 1rem;
@@ -43,8 +44,9 @@ st.markdown(
             padding-right: 0.8rem;
         }
         h1 {
-            font-size: 1.65rem !important;
+            font-size: 1.48rem !important;
             line-height: 1.15 !important;
+            overflow-wrap: anywhere;
         }
         h2, h3 {
             line-height: 1.2 !important;
@@ -55,6 +57,7 @@ st.markdown(
         .stTabs [data-baseweb="tab-list"] {
             overflow-x: auto;
             flex-wrap: nowrap;
+            scrollbar-width: thin;
         }
     }
     </style>
@@ -64,7 +67,7 @@ st.markdown(
 
 TEXT = {
     "English": {
-        "title": "Crop Pollution & Sustainable Crop Recommendation System",
+        "title": "Crop Pollution & Crop Recommendation",
         "subtitle": "Major Project | NIT Jalandhar | Punjab-first, India-scalable farmer advisory prototype",
         "language": "Language",
         "state": "State",
@@ -83,7 +86,7 @@ TEXT = {
         "major_footer": "Major Project | NIT Jalandhar | Decision-support prototype for sustainable agriculture",
     },
     "Hindi": {
-        "title": "फसल प्रदूषण और सतत फसल अनुशंसा प्रणाली",
+        "title": "फसल प्रदूषण और फसल अनुशंसा",
         "subtitle": "मेजर प्रोजेक्ट | NIT जालंधर | पंजाब-प्रथम, भारत-स्तर किसान सलाह प्रणाली",
         "language": "भाषा",
         "state": "राज्य",
@@ -239,11 +242,11 @@ state_district_df = df[(df["state"] == state) & (df["district"] == district) & (
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
     [
         "Overview",
-        "Pollution Predictor",
-        "Crop Recommendation",
-        "State/District Dashboard",
-        "Model Performance",
-        "Data Reliability",
+        "Pollution",
+        "Crops",
+        "Dashboard",
+        "Models",
+        "Sources",
     ]
 )
 
