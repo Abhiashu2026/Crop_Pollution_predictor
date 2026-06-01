@@ -11,7 +11,31 @@ YEARS = list(range(2019, 2027))
 
 STATES = {
     "Punjab": {
-        "districts": ["Amritsar", "Bathinda", "Gurdaspur", "Ludhiana", "Patiala", "Sangrur", "Tarn Taran"],
+        "districts": [
+            "Amritsar",
+            "Barnala",
+            "Bathinda",
+            "Faridkot",
+            "Fatehgarh Sahib",
+            "Fazilka",
+            "Ferozepur",
+            "Gurdaspur",
+            "Hoshiarpur",
+            "Jalandhar",
+            "Kapurthala",
+            "Ludhiana",
+            "Malerkotla",
+            "Mansa",
+            "Moga",
+            "Mohali",
+            "Muktsar",
+            "Pathankot",
+            "Patiala",
+            "Rupnagar",
+            "Sangrur",
+            "Shaheed Bhagat Singh Nagar",
+            "Tarn Taran",
+        ],
         "fertilizer_base": 238,
         "pesticide_base": 24,
         "production_base": 6800,
@@ -122,10 +146,10 @@ def clamp(value, low, high):
 
 def data_status(year):
     if year <= 2023:
-        return "Observed / official-aligned"
+        return "Official-aligned historical"
     if year == 2024:
-        return "Provisional / official-aligned"
-    return "Projected scenario"
+        return "Provisional estimate"
+    return "Model-estimated scenario"
 
 
 def soil_for(state_info, district_index, year):

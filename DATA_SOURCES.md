@@ -1,14 +1,14 @@
 # Data Sources and Reliability
 
-This project separates **observed/official-aligned data**, **rule-derived indicators**, and **projected scenarios**. This is important because the public datasets for crop production, fertilizer use, pesticide use, and district-level soil nutrients are not always released in the same format or for the same year.
+This project separates **official-aligned historical data**, **rule-derived indicators**, and **model-estimated scenarios**. This is important because the public datasets for crop production, fertilizer use, pesticide use, and district-level soil nutrients are not always released in the same format or for the same year.
 
 ## Data Provenance Table
 
 | Data Area | Source / Authority | Used For | Year Coverage in App | Reliability Level | Notes |
 |---|---|---|---|---|---|
-| Crop production | Ministry of Agriculture & Farmers Welfare / Directorate of Economics and Statistics / PIB final estimates | State-level crop production trend and production baseline | 2019-20 to 2023-24 official-aligned; 2024-25 onward projected | High for official years | Final estimates are government-published. App projections are labelled separately. |
-| Fertilizer use | data.gov.in, Department of Fertilizers state/UT-wise demand, supply and consumption | Fertilizer use feature and pollution load | 2019-20 to 2023-24 official-aligned; 2024-25 onward projected | High for official years | Used as state-level baseline; district/crop values are derived from state baseline and crop multipliers. |
-| Pesticide use | Directorate of Plant Protection, Quarantine & Storage / data.gov.in / Ministry agriculture references | Pesticide use feature and pollution load | Up to latest public official/provisional records; projections after latest release | Medium to high | Public pesticide data is often state-level. District/crop values are model-derived and labelled. |
+| Crop production | Ministry of Agriculture & Farmers Welfare / Directorate of Economics and Statistics / PIB final estimates | State-level crop production trend and production baseline | 2019-20 to 2023-24 official-aligned; later rows model-estimated | High for official years | Final estimates are government-published. Model-estimated rows are labelled separately. |
+| Fertilizer use | data.gov.in, Department of Fertilizers state/UT-wise demand, supply and consumption | Fertilizer use feature and pollution load | 2019-20 to 2023-24 official-aligned; later rows model-estimated | High for official years | Used as state-level baseline; district/crop values are derived from state baseline and crop multipliers. |
+| Pesticide use | Directorate of Plant Protection, Quarantine & Storage / data.gov.in / Ministry agriculture references | Pesticide use feature and pollution load | Up to latest public official/provisional records; later rows model-estimated | Medium to high | Public pesticide data is often state-level. District/crop values are model-derived and labelled. |
 | MSP | Government of India MSP releases / PIB / CACP-linked public releases | MSP, gross value and financial stability | 2026-27 MSP values where available | High | MSP is policy support price, not guaranteed realized mandi price for every farmer. |
 | Soil nutrient parameters | User-provided Punjab soil nutrient dataset plus agronomic nutrient suitability ranges | Punjab district crop recommendation | District rows from provided CSV; other states use state-level synthetic baselines | Medium | Punjab district values are direct project data. Other state district values are placeholders until official district soil cards are integrated. |
 | Emission factors | IPCC methodology and agricultural carbon footprint literature | CO2-equivalent estimate from fertilizer and pesticide use | Model formula | Medium | Used for educational decision-support, not regulatory carbon accounting. |
@@ -23,8 +23,8 @@ This project separates **observed/official-aligned data**, **rule-derived indica
 
 ## Reliability Statement for Viva
 
-The system is a **major project decision-support prototype**. It uses government-published sources for state-level agricultural context where available, then derives crop- and district-level scenario rows using transparent multipliers and labels them as derived/projected. Therefore, model outputs should be interpreted as advisory estimates rather than official prescriptions.
+The system is a **major project decision-support prototype**. It uses government-published sources for state-level agricultural context where available, then derives crop- and district-level scenario rows using transparent multipliers and labels them as model-estimated. Therefore, model outputs should be interpreted as advisory estimates rather than official prescriptions.
 
-## Why Projection Is Used for 2025/2026
+## Why Model Estimates Are Used for 2025/2026
 
-Final official agricultural statistics are generally released after the crop year. For 2025 and 2026, the app marks values as **Projected scenario** wherever final government datasets are not yet available. This avoids presenting forecasts as official data.
+Final official agricultural statistics are generally released after the crop year. For 2025 and 2026, the app marks values as **Model-estimated scenario** wherever final government datasets are not yet available. This avoids presenting estimates as official data.

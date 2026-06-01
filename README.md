@@ -12,14 +12,14 @@ This project is a Streamlit-based decision-support system for sustainable agricu
 - model comparison and accuracy reporting
 - data reliability documentation
 
-The earlier minor-project app has been upgraded into a major-project style dashboard. Punjab is the default state, while the dataset now covers multiple Indian states and district profiles.
+The app is now presented as a major-project dashboard. Punjab is the default state, with all Punjab districts included, while the dataset also covers multiple Indian states for scalable comparison.
 
 ## Key Features
 
 - Pollution Index prediction from crop production, fertilizer use and pesticide use.
 - Estimated CO2 emissions per hectare.
 - Sustainable crop recommendation for selected state, district and year.
-- Punjab-first district crop advisory.
+- Punjab-first district crop advisory with all Punjab districts.
 - Hindi and English language support.
 - State-wise and district-wise sustainability dashboard.
 - Model comparison using R2, MAE and RMSE.
@@ -69,9 +69,9 @@ The dataset contains:
 
 Rows are marked as:
 
-- Observed / official-aligned
-- Provisional / official-aligned
-- Projected scenario
+- Official-aligned historical
+- Provisional estimate
+- Model-estimated scenario
 
 This distinction is important for scientific honesty in the report and viva.
 
@@ -109,4 +109,4 @@ app.py
 
 ## Scientific Limitation
 
-The project is a decision-support prototype. State-level government data is used where available, while district/crop expansion and 2025/2026 values are labelled as derived or projected scenarios. Final field deployment should integrate real farm-level yield, input cost, soil health card and mandi price data.
+The project is a decision-support prototype. State-level government data is used where available, while district/crop expansion and 2025/2026 values are labelled as model-estimated scenarios. Final field deployment should integrate real farm-level yield, input cost, soil health card and mandi price data.
