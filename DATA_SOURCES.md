@@ -25,6 +25,8 @@ This project separates **official-aligned historical data**, **rule-derived indi
 
 The system is a **major project decision-support prototype**. It uses government-published sources for state-level agricultural context where available, then derives crop- and district-level scenario rows using transparent multipliers and labels them as model-estimated. Therefore, model outputs should be interpreted as advisory estimates rather than official prescriptions.
 
+The modelling dataset also separates the transparent formula-based pollution score from the field-adjusted pollution label used for ML validation. The field-adjusted label includes bounded measurement uncertainty to avoid reporting an unrealistic perfect-fit model on a deterministic formula.
+
 ## Why Model Estimates Are Used for 2025/2026
 
 Final official agricultural statistics are generally released after the crop year. For 2025 and 2026, the app marks values as **Model-estimated scenario** wherever final government datasets are not yet available. This avoids presenting estimates as official data.

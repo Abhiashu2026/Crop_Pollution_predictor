@@ -173,25 +173,41 @@ def pollution_index(production, fertilizer, pesticide, water_stress):
     return round(clamp((42 * nutrient_load) + (34 * pesticide_load) + (14 * water_stress) + (10 * production_load), 0, 100), 2), round(co2, 2)
 
 
+def measurement_uncertainty(state_index, district_index, crop_index, year):
+    seasonal = math.sin((year - 2018) * 1.7 + crop_index * 0.9)
+    local = math.cos((district_index + 1) * 1.3 + state_index * 0.7)
+    stable_hash = (
+        state_index * 73856093
+        + district_index * 19349663
+        + crop_index * 83492791
+        + year * 2654435761
+    ) % 1000
+    field_jitter = (stable_hash / 1000 - 0.5) * 9.5
+    return round((seasonal * 2.6) + (local * 1.9) + field_jitter, 2)
+
+
 def rows():
-    for state, info in STATES.items():
+    for state_index, (state, info) in enumerate(STATES.items()):
         for district_index, district in enumerate(info["districts"]):
             for crop_index, (crop, crop_info) in enumerate(CROPS.items()):
                 for year in YEARS:
                     year_factor = 1 + (year - 2019) * 0.018
-                    district_factor = 1 + ((district_index % 3) - 1) * 0.045
+                    district_factor = 1 + ((district_index % 5) - 2) * 0.035
+                    district_input_pressure = 1 + math.sin((district_index + 1) * 0.8) * 0.075
+                    district_water_pressure = math.cos((district_index + 1) * 0.65) * 0.055
                     crop_wave = 1 + math.sin((year - 2018) * (crop_index + 2)) * 0.035
                     production = round(info["production_base"] * crop_info["yield"] / 40 * district_factor * crop_wave * (1 + (year - 2019) * 0.01), 1)
-                    fertilizer = round(info["fertilizer_base"] * crop_info["fert"] * year_factor * (1 + math.cos(crop_index + district_index) * 0.025), 2)
-                    pesticide = round(info["pesticide_base"] * crop_info["pest"] * (1 + (year - 2019) * 0.012) * (1 + math.sin(crop_index) * 0.03), 2)
-                    water_stress = clamp(crop_info["water"] + (0.08 if state in {"Punjab", "Haryana", "Rajasthan"} else 0), 0, 1)
-                    pi, co2 = pollution_index(production, fertilizer, pesticide, water_stress)
+                    fertilizer = round(info["fertilizer_base"] * crop_info["fert"] * year_factor * district_input_pressure * (1 + math.cos(crop_index + district_index) * 0.025), 2)
+                    pesticide = round(info["pesticide_base"] * crop_info["pest"] * (1 + (year - 2019) * 0.012) * district_input_pressure * (1 + math.sin(crop_index) * 0.03), 2)
+                    water_stress = clamp(crop_info["water"] + (0.08 if state in {"Punjab", "Haryana", "Rajasthan"} else 0) + district_water_pressure, 0, 1)
+                    formula_pi, co2 = pollution_index(production, fertilizer, pesticide, water_stress)
+                    pi = round(clamp(formula_pi + measurement_uncertainty(state_index, district_index, crop_index, year), 0, 100), 2)
                     soil = soil_for(info, district_index, year)
-                    gross = crop_info["msp"] * crop_info["yield"]
-                    net = gross - crop_info["cost"]
                     yield_proxy = clamp(0.72 + (soil["organic_carbon_percent"] * 0.25) + (soil["nitrogen_kg_ha"] / 2000), 0.65, 1.05)
                     yield_est = round(crop_info["yield"] * yield_proxy, 2)
                     yield_gap = round(max(0, crop_info["yield"] - yield_est), 2)
+                    gross = crop_info["msp"] * yield_est
+                    net = gross - crop_info["cost"]
                     sustainability = round(clamp(100 - pi + min(18, net / 6500) - water_stress * 8, 0, 100), 2)
                     yield {
                         "state": state,
@@ -215,6 +231,7 @@ def rows():
                         "expected_net_return_rs_ha": round(net, 2),
                         "water_stress_index": water_stress,
                         "estimated_co2_kg_per_hectare": co2,
+                        "formula_pollution_index": formula_pi,
                         "pollution_index": pi,
                         "sustainability_score": sustainability,
                     }

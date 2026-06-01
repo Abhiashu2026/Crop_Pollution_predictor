@@ -23,6 +23,10 @@ The app is now presented as a major-project dashboard. Punjab is the default sta
 - Hindi and English language support.
 - State-wise and district-wise sustainability dashboard.
 - Model comparison using R2, MAE and RMSE.
+- Crop suitability heatmap and best crop per district.
+- Scenario simulator for fertilizer, pesticide and water-stress reduction.
+- Feature importance chart for explainable ML.
+- Dataset viewer and CSV download inside the app.
 - Data provenance documentation for report and PPT.
 
 ## App Sections
@@ -65,6 +69,7 @@ The dataset contains:
 - water stress
 - CO2 estimate
 - pollution index
+- formula pollution index
 - sustainability score
 
 Rows are marked as:

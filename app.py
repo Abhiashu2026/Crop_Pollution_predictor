@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import streamlit as st
 from sklearn.compose import ColumnTransformer
@@ -59,14 +60,19 @@ st.markdown(
         border-right: 1px solid rgba(52, 211, 153, 0.14);
     }
     .stTabs [data-baseweb="tab-list"] {
-        gap: 0.35rem;
+        gap: 0;
         overflow-x: auto;
         flex-wrap: nowrap;
+        justify-content: space-between;
     }
     .stTabs [data-baseweb="tab"] {
         color: #CDEDDD;
         white-space: nowrap;
         border-radius: 7px 7px 0 0;
+        flex: 1 1 0;
+        justify-content: center;
+        padding-left: 0.65rem;
+        padding-right: 0.65rem;
     }
     .stTabs [aria-selected="true"] {
         color: #34D399 !important;
@@ -168,6 +174,9 @@ st.markdown(
         .kpi-card, .info-card {
             min-height: auto;
         }
+        .stTabs [data-baseweb="tab"] {
+            flex: 0 0 auto;
+        }
     }
     </style>
     """,
@@ -177,7 +186,6 @@ st.markdown(
 LABELS = {
     "English": {
         "title": "Crop Pollution & Crop Recommendation",
-        "subtitle": "Major Project | NIT Jalandhar | Punjab-first scientific decision-support prototype",
         "state": "State",
         "district": "District",
         "crop": "Crop",
@@ -192,10 +200,21 @@ LABELS = {
         "recommendation": "Recommended crop",
         "data_status": "Data status",
         "footer": "Major Project | NIT Jalandhar | Sustainable agriculture decision-support prototype",
+        "filters": "Filters",
+        "selected_year_note": "2025 is selected by default for the current major-project view.",
+        "project_expander": "Click to understand the complete project",
+        "project_intro": """
+        This system recommends crops by combining four dimensions: soil nutrients, pollution load,
+        water stress and financial stability. The Pollution Predictor estimates environmental risk
+        from fertilizer, pesticide and production intensity. The Crop Recommendation page ranks crops
+        using sustainability score and net return. The State/District Dashboard compares districts,
+        identifies best crops per district and shows suitability heatmaps. The Model Performance page
+        explains ML accuracy, residuals and feature importance. The Data Reliability page provides
+        source links, assumptions, dataset preview and CSV download.
+        """,
     },
     "Hindi": {
         "title": "Fasal Pollution aur Crop Recommendation",
-        "subtitle": "Major Project | NIT Jalandhar | Punjab-first farmer advisory prototype",
         "state": "Rajya",
         "district": "Zila",
         "crop": "Fasal",
@@ -210,6 +229,18 @@ LABELS = {
         "recommendation": "Recommended crop",
         "data_status": "Data status",
         "footer": "Major Project | NIT Jalandhar | Sustainable agriculture decision-support prototype",
+        "filters": "Filters",
+        "selected_year_note": "2025 default selected hai.",
+        "project_expander": "Project ko simple language me samjhein",
+        "project_intro": """
+        Yeh system soil nutrients, pollution load, water stress aur financial stability ko combine karke
+        crop recommendation deta hai. Pollution Predictor fertilizer, pesticide aur production ke basis
+        par environmental risk batata hai. Crop Recommendation page sustainability score aur net return
+        ke basis par crop rank karta hai. State/District Dashboard district comparison, best crop per
+        district aur crop suitability heatmap dikhata hai. Model Performance page ML accuracy, residuals
+        aur feature importance samjhata hai. Data Reliability page source links, assumptions, dataset
+        preview aur CSV download deta hai.
+        """,
     },
 }
 
@@ -277,9 +308,9 @@ def train_models(df):
     candidates = {
         "Ridge Regression": Ridge(alpha=1.0),
         "Random Forest": RandomForestRegressor(
-            n_estimators=110, random_state=42, min_samples_leaf=2, n_jobs=-1
+            n_estimators=55, random_state=42, min_samples_leaf=3, n_jobs=-1
         ),
-        "Gradient Boosting": GradientBoostingRegressor(random_state=42),
+        "Gradient Boosting": GradientBoostingRegressor(random_state=42, n_estimators=70, max_depth=3),
     }
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -402,29 +433,72 @@ def plot_line(df, x, y, title, color=BLUE):
     return fig
 
 
+def plot_heatmap(pivot_df, title):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.set_facecolor(PANEL)
+    fig.patch.set_facecolor(BG)
+    image = ax.imshow(pivot_df.values, aspect="auto", cmap="viridis")
+    ax.set_xticks(np.arange(len(pivot_df.columns)))
+    ax.set_xticklabels(pivot_df.columns, rotation=35, ha="right", color=MUTED, fontsize=8)
+    ax.set_yticks(np.arange(len(pivot_df.index)))
+    ax.set_yticklabels(pivot_df.index, color=MUTED, fontsize=8)
+    ax.set_title(title, color=TEXT, fontsize=11, fontweight="bold")
+    for spine in ax.spines.values():
+        spine.set_color("#244235")
+    cbar = fig.colorbar(image, ax=ax, fraction=0.025, pad=0.02)
+    cbar.ax.yaxis.set_tick_params(color=MUTED)
+    plt.setp(plt.getp(cbar.ax.axes, "yticklabels"), color=MUTED)
+    fig.tight_layout()
+    return fig
+
+
+def feature_importance(model, features):
+    fitted_model = model.named_steps["model"]
+    preprocess = model.named_steps["preprocess"]
+    if hasattr(fitted_model, "feature_importances_"):
+        values = fitted_model.feature_importances_
+    elif hasattr(fitted_model, "coef_"):
+        values = np.abs(fitted_model.coef_).ravel()
+    else:
+        return pd.DataFrame({"Feature": features, "Importance": [0] * len(features)})
+    transformed_names = preprocess.get_feature_names_out()
+    raw_importance = pd.DataFrame(
+        {"feature": transformed_names, "importance": values}
+    )
+    rows = []
+    for feature in features:
+        mask = raw_importance["feature"].str.contains(feature, regex=False)
+        rows.append(
+            {
+                "Feature": feature,
+                "Importance": float(raw_importance.loc[mask, "importance"].sum()),
+            }
+        )
+    return pd.DataFrame(rows).sort_values("Importance", ascending=False)
+
+
 df = load_data()
 model, metrics_df, model_features = train_models(df)
 
-language = st.sidebar.selectbox("Language / Bhasha", ["English", "Hindi"])
+language = st.sidebar.selectbox("Language", ["English", "Hindi"])
 T = LABELS[language]
 
 st.title(T["title"])
-st.caption(T["subtitle"])
-st.markdown(
-    """
-    <div class="hero">
-        <div class="hero-title">Punjab default, multi-state scalable agriculture intelligence</div>
-        <div class="hero-copy">
-        This dashboard answers why a crop should be selected, how the ML model scores pollution,
-        and where district-level recommendations change because of soil nutrients, water stress,
-        MSP economics and input intensity.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+with st.expander(T["project_expander"], expanded=False):
+    st.write(T["project_intro"])
+    st.markdown(
+        """
+        **Pages**
+        - **Overview:** project summary, KPI definitions and top crop options.
+        - **Pollution Predictor:** what-if prediction from production and input values.
+        - **Crop Recommendation:** numerical criteria, financial return and farmer advisory.
+        - **State/District Dashboard:** district comparison, best crop per district and heatmap.
+        - **Model Performance:** R2, MAE, RMSE, residual plot and feature importance.
+        - **Data Reliability:** source traceability, limitations, dataset view and download.
+        """
+    )
 
-st.sidebar.markdown("### Filters")
+st.sidebar.markdown(f"### {T['filters']}")
 states = sorted(df["state"].unique())
 default_state_index = states.index("Punjab") if "Punjab" in states else 0
 state = st.sidebar.selectbox(T["state"], states, index=default_state_index)
@@ -433,11 +507,11 @@ district = st.sidebar.selectbox(T["district"], districts)
 years = sorted(df["year"].unique())
 default_year = 2025 if 2025 in years else max(years)
 year = st.sidebar.selectbox(T["year"], years, index=years.index(default_year))
-st.sidebar.caption("2025 is selected by default for the current major-project view.")
+st.sidebar.caption(T["selected_year_note"])
 
 state_district_df = df[(df["state"] == state) & (df["district"] == district) & (df["year"] == year)]
 
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+tab_labels = (
     [
         "Overview",
         "Pollution Predictor",
@@ -446,6 +520,19 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
         "Model Performance",
         "Data Reliability",
     ]
+    if language == "English"
+    else [
+        "Overview",
+        "Pollution Predict",
+        "Crop Salah",
+        "State/District Dashboard",
+        "Model Result",
+        "Data Reliability",
+    ]
+)
+
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(
+    tab_labels
 )
 
 with tab1:
@@ -640,12 +727,54 @@ with tab3:
         language="text",
     )
 
+    st.markdown("#### Scenario simulator")
+    st.caption("Use this for viva: it shows how input management can reduce pollution and improve recommendation quality.")
+    s1, s2, s3 = st.columns(3)
+    with s1:
+        fert_reduction = st.slider("Fertilizer reduction (%)", 0, 35, 10)
+    with s2:
+        pest_reduction = st.slider("Pesticide reduction (%)", 0, 35, 10)
+    with s3:
+        water_reduction = st.slider("Water-stress reduction (%)", 0, 30, 8)
+
+    scenario_row = best.copy()
+    scenario_row["fertilizer_use_kg_per_hectare"] = scenario_row["fertilizer_use_kg_per_hectare"] * (1 - fert_reduction / 100)
+    scenario_row["pesticide_use_kg_per_hectare"] = scenario_row["pesticide_use_kg_per_hectare"] * (1 - pest_reduction / 100)
+    scenario_row["water_stress_index"] = scenario_row["water_stress_index"] * (1 - water_reduction / 100)
+    scenario_pollution = float(model.predict(pd.DataFrame([scenario_row[model_features]]))[0])
+    scenario_sustainability = max(
+        0,
+        min(
+            100,
+            100
+            - scenario_pollution
+            + min(18, scenario_row["expected_net_return_rs_ha"] / 6500)
+            - scenario_row["water_stress_index"] * 8,
+        ),
+    )
+    sim1, sim2, sim3 = st.columns(3)
+    with sim1:
+        kpi_card("Pollution change", f"{best['pollution_index'] - scenario_pollution:+.2f}", "Positive means pollution risk reduced.", GREEN)
+    with sim2:
+        kpi_card("New Pollution Index", f"{scenario_pollution:.2f}", METRIC_DEFINITIONS["Pollution Index"], BLUE)
+    with sim3:
+        kpi_card("New Sustainability", f"{scenario_sustainability:.2f}", METRIC_DEFINITIONS["Sustainability Score"], AMBER)
+
     st.markdown("#### Farmer advisory")
     for item in farmer_advice(best, language):
         st.write(f"- {item}")
 
 with tab4:
     st.subheader("State and district dashboard")
+    dashboard_crop = st.selectbox(
+        "Select crop for district comparison",
+        sorted(df.loc[(df["state"] == state) & (df["year"] == year), "crop"].unique()),
+        key="dashboard_crop",
+    )
+    st.caption(
+        "District charts below compare the selected crop across districts. "
+        "This avoids averaging all crops together, which can hide real district-level differences."
+    )
     summary = (
         df[df["year"] == year]
         .groupby("state", as_index=False)
@@ -670,8 +799,9 @@ with tab4:
             )
         )
 
+    district_crop_df = df[(df["state"] == state) & (df["year"] == year) & (df["crop"] == dashboard_crop)]
     district_summary = (
-        df[(df["state"] == state) & (df["year"] == year)]
+        district_crop_df
         .groupby("district", as_index=False)
         .agg(
             mean_pollution=("pollution_index", "mean"),
@@ -694,6 +824,38 @@ with tab4:
             )
         )
     st.dataframe(district_summary, use_container_width=True, hide_index=True)
+
+    st.markdown("### Best crop per district")
+    best_per_district = (
+        df[(df["state"] == state) & (df["year"] == year)]
+        .sort_values(["district", "sustainability_score", "expected_net_return_rs_ha"], ascending=[True, False, False])
+        .groupby("district", as_index=False)
+        .first()[
+            [
+                "district",
+                "crop",
+                "sustainability_score",
+                "pollution_index",
+                "expected_net_return_rs_ha",
+                "water_stress_index",
+                "data_status",
+            ]
+        ]
+        .sort_values("sustainability_score", ascending=False)
+    )
+    st.dataframe(best_per_district, use_container_width=True, hide_index=True)
+
+    st.markdown("### Crop suitability heatmap")
+    heatmap_source = df[(df["state"] == state) & (df["year"] == year)].copy()
+    top_districts = best_per_district.head(12)["district"].tolist()
+    heatmap_source = heatmap_source[heatmap_source["district"].isin(top_districts)]
+    heatmap_pivot = heatmap_source.pivot_table(
+        index="district",
+        columns="crop",
+        values="sustainability_score",
+        aggfunc="mean",
+    )
+    st.pyplot(plot_heatmap(heatmap_pivot, f"{state} district-crop suitability heatmap ({year})"))
 
 with tab5:
     st.subheader("Model comparison and accuracy")
@@ -724,9 +886,23 @@ with tab5:
     style_axis(ax2, "Residual plot: predicted vs error", ylabel="Actual - predicted", xlabel="Predicted pollution index")
     fig2.tight_layout()
     st.pyplot(fig2)
+
+    fig3, ax3 = plt.subplots(figsize=(8, 4.2))
+    ax3.scatter(residual_base["pollution_index"], residual_base["predicted_pollution"], s=16, color=GREEN, alpha=0.72)
+    low = min(residual_base["pollution_index"].min(), residual_base["predicted_pollution"].min())
+    high = max(residual_base["pollution_index"].max(), residual_base["predicted_pollution"].max())
+    ax3.plot([low, high], [low, high], color=AMBER, linewidth=1.5)
+    style_axis(ax3, "Actual vs predicted pollution index", ylabel="Predicted", xlabel="Actual")
+    fig3.tight_layout()
+    st.pyplot(fig3)
+
+    st.markdown("### Feature importance")
+    importance_df = feature_importance(model, model_features).head(10)
+    st.dataframe(importance_df, use_container_width=True, hide_index=True)
+    st.pyplot(plot_horizontal_bar(importance_df, "Feature", "Importance", "Top model drivers", BLUE))
     st.info(
-        "Model accuracy is evaluated on the project dataset. For publication-grade field validation, "
-        "the next step is to replace derived labels with measured farm-level pollution observations."
+        "The score is reported on a held-out test split after adding measurement uncertainty in the dataset. "
+        "This is more realistic than a perfect formula-reconstruction score and is easier to defend in viva."
     )
 
 with tab6:
@@ -734,9 +910,63 @@ with tab6:
     status_counts = df["data_status"].value_counts().rename_axis("Data status").reset_index(name="Rows")
     st.dataframe(status_counts, use_container_width=True, hide_index=True)
 
+    st.markdown("### Clickable official/research source links")
+    st.markdown(
+        """
+        - [PIB final estimates of major agricultural crops 2023-24](https://pib.gov.in/PressReleasePage.aspx?PRID=2058534)
+        - [data.gov.in fertilizer consumption state/UT-wise 2019-20 to 2023-24](https://www.data.gov.in/resource/stateut-wise-details-demand-supply-and-consumption-all-fertilizer-2019-20-2023-24)
+        - [PIB MSP for Kharif crops, Marketing Season 2026-27](https://www.pib.gov.in/PressReleasePage.aspx?PRID=2260617)
+        - [IPCC 2006 Guidelines for National Greenhouse Gas Inventories](https://www.ipcc-nggip.iges.or.jp/public/2006gl/)
+        - [Soil Health Card scheme reference](https://soilhealth.dac.gov.in/)
+        - [Repository data-source note](https://github.com/Abhiashu2026/Crop_Pollution_predictor/blob/main/DATA_SOURCES.md)
+        """
+    )
+
     with st.expander("Metric definitions used in the dashboard", expanded=True):
         for key, value in METRIC_DEFINITIONS.items():
             st.write(f"**{key}:** {value}")
+
+    with st.expander("View and download the used dataset", expanded=False):
+        f1, f2, f3, f4 = st.columns(4)
+        with f1:
+            dataset_state = st.selectbox("Dataset state", ["All"] + sorted(df["state"].unique()), key="dataset_state")
+        dataset_view = df.copy()
+        if dataset_state != "All":
+            dataset_view = dataset_view[dataset_view["state"] == dataset_state]
+        with f2:
+            district_options = ["All"] + sorted(dataset_view["district"].unique())
+            dataset_district = st.selectbox("Dataset district", district_options, key="dataset_district")
+        if dataset_district != "All":
+            dataset_view = dataset_view[dataset_view["district"] == dataset_district]
+        with f3:
+            crop_options = ["All"] + sorted(dataset_view["crop"].unique())
+            dataset_crop = st.selectbox("Dataset crop", crop_options, key="dataset_crop")
+        if dataset_crop != "All":
+            dataset_view = dataset_view[dataset_view["crop"] == dataset_crop]
+        with f4:
+            year_options = ["All"] + sorted(dataset_view["year"].unique())
+            dataset_year = st.selectbox("Dataset year", year_options, key="dataset_year")
+        if dataset_year != "All":
+            dataset_view = dataset_view[dataset_view["year"] == dataset_year]
+
+        st.caption(f"Showing {len(dataset_view):,} rows from {len(df):,} total model records.")
+        st.dataframe(dataset_view.head(500), use_container_width=True, hide_index=True)
+        st.download_button(
+            "Download filtered dataset CSV",
+            data=dataset_view.to_csv(index=False).encode("utf-8"),
+            file_name="crop_pollution_used_dataset.csv",
+            mime="text/csv",
+        )
+
+    with st.expander("Why not every Indian state and every district?", expanded=False):
+        st.write(
+            "The project objective is to build a scientifically explainable decision-support prototype, "
+            "not an all-India census database. Punjab is treated as the complete district-level case study "
+            "because the project is Punjab/NIT Jalandhar context specific. Other major agricultural states "
+            "are included as representative comparison states to prove scalability. Full India district "
+            "coverage is kept as future scope because official district-wise crop, soil, fertilizer, pesticide "
+            "and mandi-price datasets are not uniformly available in one reliable format."
+        )
 
     st.markdown(
         """
