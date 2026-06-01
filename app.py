@@ -51,6 +51,9 @@ st.markdown(
         h2, h3 {
             line-height: 1.2 !important;
         }
+        p, div[data-testid="stMarkdownContainer"] {
+            overflow-wrap: anywhere;
+        }
         div[data-testid="stMetric"] {
             padding: 0.65rem;
         }
@@ -68,7 +71,7 @@ st.markdown(
 TEXT = {
     "English": {
         "title": "Crop Pollution & Crop Recommendation",
-        "subtitle": "Major Project | NIT Jalandhar | Punjab-first, India-scalable farmer advisory prototype",
+        "subtitle": "Major Project | NIT Jalandhar | Punjab-first farmer advisory prototype",
         "language": "Language",
         "state": "State",
         "district": "District",
@@ -87,7 +90,7 @@ TEXT = {
     },
     "Hindi": {
         "title": "फसल प्रदूषण और फसल अनुशंसा",
-        "subtitle": "मेजर प्रोजेक्ट | NIT जालंधर | पंजाब-प्रथम, भारत-स्तर किसान सलाह प्रणाली",
+        "subtitle": "मेजर प्रोजेक्ट | NIT जालंधर | पंजाब-प्रथम किसान सलाह प्रणाली",
         "language": "भाषा",
         "state": "राज्य",
         "district": "जिला",
@@ -258,12 +261,8 @@ with tab1:
     c4.metric("Rows", f"{len(df):,}")
 
     st.markdown(
-        """
-        This upgraded major-project dashboard merges crop pollution prediction with
-        Punjab-first crop recommendation. Punjab is the default state, while the
-        dataset also covers multiple Indian states and district profiles to make
-        the project scalable beyond one region.
-        """
+        "This major-project dashboard combines crop pollution prediction, "
+        "Punjab-first crop recommendation, and multi-state district profiles."
     )
     top = (
         state_district_df.sort_values("sustainability_score", ascending=False)
@@ -279,7 +278,16 @@ with tab1:
         ]
     )
     st.subheader(f"Best crop options for {district}, {state} ({year})")
-    st.dataframe(top, use_container_width=True)
+    compact_top = top.rename(
+        columns={
+            "pollution_index": "pollution",
+            "sustainability_score": "sustainability",
+            "estimated_co2_kg_per_hectare": "co2_kg_ha",
+            "expected_net_return_rs_ha": "net_return",
+            "data_status": "status",
+        }
+    )
+    st.dataframe(compact_top, use_container_width=True, hide_index=True)
 
 with tab2:
     st.subheader("Pollution prediction from production inputs")
