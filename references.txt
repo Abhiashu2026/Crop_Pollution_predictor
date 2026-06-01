@@ -1,6 +1,19 @@
-Dataset sources:
-- FAOSTAT (Food and Agriculture Organization) Crop Production Database
-- ICAR (Indian Council of Agricultural Research) Fertilizer and Pesticide Use Reports
-- Ministry of Environment, Forest and Climate Change - India
+Major Project References
 
-Pollution Index calculated based on estimated fertilizer and pesticide impact.
+1. Ministry of Agriculture & Farmers Welfare / PIB final estimates of major agricultural crops 2023-24:
+   https://pib.gov.in/PressReleasePage.aspx?PRID=2058534
+
+2. data.gov.in state/UT-wise fertilizer demand, supply and consumption 2019-20 to 2023-24:
+   https://www.data.gov.in/resource/stateut-wise-details-demand-supply-and-consumption-all-fertilizer-2019-20-2023-24
+
+3. Government of India MSP release for Kharif crops, Marketing Season 2026-27:
+   https://www.pib.gov.in/PressReleasePage.aspx?PRID=2260617
+
+4. IPCC 2006 Guidelines for National Greenhouse Gas Inventories:
+   https://www.ipcc-nggip.iges.or.jp/public/2006gl/
+
+5. Soil Health Card scheme:
+   https://soilhealth.dac.gov.in/
+
+6. Directorate of Plant Protection, Quarantine & Storage:
+   https://ppqs.gov.in/
