@@ -20,6 +20,48 @@ st.set_page_config(
     layout="wide",
 )
 
+st.markdown(
+    """
+    <style>
+    .block-container {
+        padding-top: 1.3rem;
+        padding-bottom: 2rem;
+        max-width: 1280px;
+    }
+    div[data-testid="stMetric"] {
+        background: #f6f8f5;
+        border: 1px solid #d9e2dc;
+        border-radius: 8px;
+        padding: 0.85rem;
+    }
+    div[data-testid="stHorizontalBlock"] {
+        gap: 1rem;
+    }
+    @media (max-width: 760px) {
+        .block-container {
+            padding-left: 0.8rem;
+            padding-right: 0.8rem;
+        }
+        h1 {
+            font-size: 1.65rem !important;
+            line-height: 1.15 !important;
+        }
+        h2, h3 {
+            line-height: 1.2 !important;
+        }
+        div[data-testid="stMetric"] {
+            padding: 0.65rem;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            overflow-x: auto;
+            flex-wrap: nowrap;
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 TEXT = {
     "English": {
         "title": "Crop Pollution & Sustainable Crop Recommendation System",
@@ -107,7 +149,7 @@ def train_models(df):
 
     candidates = {
         "Ridge Regression": Ridge(alpha=1.0),
-        "Random Forest": RandomForestRegressor(n_estimators=180, random_state=42, min_samples_leaf=2),
+        "Random Forest": RandomForestRegressor(n_estimators=90, random_state=42, min_samples_leaf=2, n_jobs=-1),
         "Gradient Boosting": GradientBoostingRegressor(random_state=42),
     }
 

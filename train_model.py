@@ -62,7 +62,7 @@ def main():
     candidates = {
         "Ridge Regression": Ridge(alpha=1.0),
         "Random Forest": RandomForestRegressor(
-            n_estimators=180, random_state=42, min_samples_leaf=2
+            n_estimators=90, random_state=42, min_samples_leaf=2, n_jobs=-1
         ),
         "Gradient Boosting": GradientBoostingRegressor(random_state=42),
     }
